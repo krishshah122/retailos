@@ -26,15 +26,43 @@ def process_whatsapp_message(store_id, text_message, phone_number):
         node_trace=[],
     )
     
-    # We call the synchronous wrapper
-    try:
-        final_state = run_inventory_pipeline(state)
-        output_msg = final_state.get("output", {}).get("message", "Processed successfully.")
-        executed = final_state.get("output", {}).get("executed_changes", [])
-        if executed:
-            output_msg += "\n\nChanges made:\n- " + "\n- ".join(executed)
-    except Exception as e:
-        output_msg = f"Sorry, an error occurred while processing: {str(e)}"
+    # Check for simple greetings/help requests
+    clean_text = text_message.strip().lower()
+    greetings = ["hi", "hello", "hey", "help", "menu", "start", "info", "who are you", "hi!", "hello!"]
+    
+    if clean_text in greetings:
+        store_obj = Store.objects.filter(id=store_id).first()
+        store_name = store_obj.name if store_obj else "your store"
+        output_msg = (
+            f"Hello! 👋 I am your RetailOS AI Assistant for *{store_name}*.\n\n"
+            "Here is what you can ask me directly on WhatsApp:\n\n"
+            "📦 *Add Stock*: `Add 10 Rice bags 5kg @ 250`\n"
+            "📊 *Check Stock*: `Check stock for Rice`\n"
+            "🛍️ *Record Sales*: `Sold 3 Amul Butter`\n"
+            "❌ *Delete Product*: `Delete product Amul Butter`\n\n"
+            "Try sending one of these commands!"
+        )
+    else:
+        try:
+            final_state = run_inventory_pipeline(state)
+            executed = final_state.get("output", {}).get("executed_changes", [])
+            if executed:
+                output_msg = "✅ *Action Completed:*\n- " + "\n- ".join(executed)
+            elif final_state.get("error"):
+                output_msg = f"⚠️ *Note*: {final_state['error']}"
+            else:
+                store_obj = Store.objects.filter(id=store_id).first()
+                store_name = store_obj.name if store_obj else "your store"
+                output_msg = (
+                    f"Got your message for *{store_name}*!\n\n"
+                    "💡 *Try these commands:*\n"
+                    "• `Add 20 Amul Butter @ 55`\n"
+                    "• `Check stock for Amul Butter`\n"
+                    "• `Sold 5 Amul Butter`\n"
+                    "• `Delete product Amul Butter`"
+                )
+        except Exception as e:
+            output_msg = f"Sorry, an error occurred while processing: {str(e)}"
         
     # 2. Send the outbound message back to WhatsApp via Meta API
     import requests
