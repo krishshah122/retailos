@@ -129,21 +129,29 @@ from corsheaders.defaults import default_headers, default_methods
 CORS_ALLOW_ALL_ORIGINS = env.bool("CORS_ALLOW_ALL", default=True)
 
 cors_env = os.getenv("CORS_ORIGINS", "")
+raw_origins = []
 if cors_env:
     try:
         parsed = json.loads(cors_env)
         if isinstance(parsed, list):
-            CORS_ALLOWED_ORIGINS = parsed
+            raw_origins = [str(x) for x in parsed]
         else:
-            CORS_ALLOWED_ORIGINS = [str(parsed)]
+            raw_origins = [str(parsed)]
     except Exception:
-        CORS_ALLOWED_ORIGINS = [origin.strip() for origin in cors_env.split(",") if origin.strip()]
+        raw_origins = [origin.strip() for origin in cors_env.split(",") if origin.strip()]
 else:
-    CORS_ALLOWED_ORIGINS = [
+    raw_origins = [
         "http://localhost:5173",
         "http://localhost:3000",
         "https://retailos-iota.vercel.app",
     ]
+
+# Ensure no trailing slashes or paths exist in CORS_ALLOWED_ORIGINS (fixes django-cors-headers E014)
+CORS_ALLOWED_ORIGINS = []
+for origin in raw_origins:
+    cleaned = origin.strip().rstrip("/")
+    if cleaned and cleaned not in CORS_ALLOWED_ORIGINS:
+        CORS_ALLOWED_ORIGINS.append(cleaned)
 
 if "https://retailos-iota.vercel.app" not in CORS_ALLOWED_ORIGINS:
     CORS_ALLOWED_ORIGINS.append("https://retailos-iota.vercel.app")
