@@ -124,8 +124,9 @@ CACHES = {
 
 # ── CORS ──────────────────────────────────────────────
 import json
+from corsheaders.defaults import default_headers, default_methods
 
-CORS_ALLOW_ALL_ORIGINS = env.bool("CORS_ALLOW_ALL", default=False)
+CORS_ALLOW_ALL_ORIGINS = env.bool("CORS_ALLOW_ALL", default=True)
 
 cors_env = os.getenv("CORS_ORIGINS", "")
 if cors_env:
@@ -144,7 +145,7 @@ else:
         "https://retailos-iota.vercel.app",
     ]
 
-if "https://retailos-iota.vercel.app" not in CORS_ALLOWED_ORIGINS and not CORS_ALLOW_ALL_ORIGINS:
+if "https://retailos-iota.vercel.app" not in CORS_ALLOWED_ORIGINS:
     CORS_ALLOWED_ORIGINS.append("https://retailos-iota.vercel.app")
 
 CORS_ALLOWED_ORIGIN_REGEXES = [
@@ -152,6 +153,14 @@ CORS_ALLOWED_ORIGIN_REGEXES = [
 ]
 
 CORS_ALLOW_CREDENTIALS = True
+
+CORS_ALLOW_HEADERS = list(default_headers) + [
+    "authorization",
+    "content-type",
+    "x-csrftoken",
+]
+
+CORS_ALLOW_METHODS = list(default_methods)
 
 # ── DRF ───────────────────────────────────────────────
 REST_FRAMEWORK = {
