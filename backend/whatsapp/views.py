@@ -122,6 +122,7 @@ class WhatsAppWebhookView(View):
         """Receives incoming messages from WhatsApp"""
         try:
             body = json.loads(request.body)
+            print(f"[WHATSAPP WEBHOOK RECEIVED]: {json.dumps(body)}")
             
             # Parse WhatsApp payload
             if body.get("object") == "whatsapp_business_account":
