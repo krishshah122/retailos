@@ -8,8 +8,8 @@ from core.models import Store
 from agents.ai.state import AgentState
 from agents.ai.graphs.inventory_graph import run_inventory_pipeline
 
-# Meta Verification Token (Set this in your Meta App Dashboard)
-VERIFY_TOKEN = "retailos_whatsapp_secret_token_123"
+# Meta Verification Token (Set this in your Meta App Dashboard or WHATSAPP_VERIFY_TOKEN env var)
+VERIFY_TOKEN = os.environ.get("WHATSAPP_VERIFY_TOKEN", "retailos_whatsapp_secret_token_123")
 
 def process_whatsapp_message(store_id, text_message, phone_number):
     """
