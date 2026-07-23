@@ -5,7 +5,7 @@ from django.http import HttpResponse, JsonResponse
 from django.views import View
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
-from core.models import Store
+from core.models import Store, User
 from agents.ai.state import AgentState
 from agents.ai.graphs.inventory_graph import run_inventory_pipeline
 
@@ -150,6 +150,21 @@ class WhatsAppWebhookView(View):
                                     # Fallback for single-store setups / testing
                                     if not store:
                                         store = Store.objects.first()
+
+                                    # Auto-create fallback store if database is empty so WhatsApp AI always works!
+                                    if not store:
+                                        owner_user = User.objects.first()
+                                        if not owner_user:
+                                            owner_user = User.objects.create(
+                                                email="aniltelecom@retailos.app",
+                                                full_name="Anil Telecom Admin"
+                                            )
+                                        store = Store.objects.create(
+                                            owner=owner_user,
+                                            name="Anil Telecom",
+                                            phone=str(phone_number),
+                                            whatsapp_number=str(phone_number)
+                                        )
 
                                     if store:
                                         # Spawn a background thread to process the AI request 
