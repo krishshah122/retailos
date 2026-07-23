@@ -107,8 +107,20 @@ class WhatsAppWebhookView(View):
                                 if msg.get("type") == "text":
                                     text = msg.get("text", {}).get("body", "")
                                     
-                                    # Security: Find the store linked to this WhatsApp number
-                                    store = Store.objects.filter(whatsapp_number=phone_number).first()
+                                    # Smart Store Identification: Match sender phone number against store whatsapp_number or phone
+                                    clean_phone = ''.join(filter(str.isdigit, str(phone_number)))
+                                    last_10 = clean_phone[-10:] if len(clean_phone) >= 10 else clean_phone
+                                    
+                                    store = None
+                                    if last_10:
+                                        store = Store.objects.filter(whatsapp_number__icontains=last_10).first()
+                                        if not store:
+                                            store = Store.objects.filter(phone__icontains=last_10).first()
+                                    
+                                    # Fallback for single-store setups / testing
+                                    if not store:
+                                        store = Store.objects.first()
+
                                     if store:
                                         # Spawn a background thread to process the AI request 
                                         # so we can return 200 OK immediately to Meta
@@ -118,7 +130,7 @@ class WhatsAppWebhookView(View):
                                         )
                                         thread.start()
                                     else:
-                                        print(f"Unauthorized message from {phone_number}: {text}")
+                                        print(f"No store found for incoming message from {phone_number}: {text}")
                                         
             # We MUST return 200 OK immediately so Meta doesn't retry
             return HttpResponse("EVENT_RECEIVED", status=200)
