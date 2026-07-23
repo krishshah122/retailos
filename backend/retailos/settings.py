@@ -9,12 +9,15 @@ env = environ.Env(
     APP_ENV=(str, "development"),
     APP_NAME=(str, "RetailOS"),
 )
-environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
+try:
+    environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
+except Exception:
+    pass
 
 # ── Core ──────────────────────────────────────────────
-APP_NAME = env("APP_NAME")
-APP_ENV = env("APP_ENV")
-DEBUG = env("DEBUG")
+APP_NAME = env("APP_NAME", default="RetailOS")
+APP_ENV = env("APP_ENV", default="development")
+DEBUG = env.bool("DEBUG", default=True)
 
 SECRET_KEY = env("SECRET_KEY", default="change-me-in-production")
 
@@ -121,11 +124,33 @@ CACHES = {
 
 # ── CORS ──────────────────────────────────────────────
 import json
-try:
-    cors_env = env("CORS_ORIGINS", default='["http://localhost:5173", "http://localhost:3000"]')
-    CORS_ALLOWED_ORIGINS = json.loads(cors_env)
-except Exception:
-    CORS_ALLOWED_ORIGINS = ["http://localhost:5173", "http://localhost:3000"]
+
+CORS_ALLOW_ALL_ORIGINS = env.bool("CORS_ALLOW_ALL", default=False)
+
+cors_env = os.getenv("CORS_ORIGINS", "")
+if cors_env:
+    try:
+        parsed = json.loads(cors_env)
+        if isinstance(parsed, list):
+            CORS_ALLOWED_ORIGINS = parsed
+        else:
+            CORS_ALLOWED_ORIGINS = [str(parsed)]
+    except Exception:
+        CORS_ALLOWED_ORIGINS = [origin.strip() for origin in cors_env.split(",") if origin.strip()]
+else:
+    CORS_ALLOWED_ORIGINS = [
+        "http://localhost:5173",
+        "http://localhost:3000",
+        "https://retailos-iota.vercel.app",
+    ]
+
+if "https://retailos-iota.vercel.app" not in CORS_ALLOWED_ORIGINS and not CORS_ALLOW_ALL_ORIGINS:
+    CORS_ALLOWED_ORIGINS.append("https://retailos-iota.vercel.app")
+
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^https://.*\.vercel\.app$",
+]
+
 CORS_ALLOW_CREDENTIALS = True
 
 # ── DRF ───────────────────────────────────────────────
