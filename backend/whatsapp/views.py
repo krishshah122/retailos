@@ -77,6 +77,7 @@ def process_whatsapp_message(store_id, text_message, phone_number):
         print(f"Would have sent: {output_msg} to {phone_number}")
         return
 
+    clean_to = ''.join(filter(str.isdigit, str(phone_number)))
     headers = {
         "Authorization": f"Bearer {WHATSAPP_TOKEN}",
         "Content-Type": "application/json",
@@ -84,11 +85,12 @@ def process_whatsapp_message(store_id, text_message, phone_number):
     
     payload = {
         "messaging_product": "whatsapp",
-        "to": phone_number,
+        "to": clean_to,
         "type": "text",
         "text": {"body": output_msg},
     }
 
+    print(f"[OUTBOUND WHATSAPP SENDING] to {clean_to} using PHONE_ID={PHONE_ID}")
     try:
         response = requests.post(
             f"https://graph.facebook.com/v19.0/{PHONE_ID}/messages",
@@ -96,10 +98,11 @@ def process_whatsapp_message(store_id, text_message, phone_number):
             json=payload,
             timeout=10
         )
+        print(f"[OUTBOUND META RESULT] status={response.status_code}, response={response.text}")
         if response.status_code != 200:
             print(f"Failed to send WhatsApp msg: {response.text}")
         else:
-            print(f"Successfully sent WhatsApp msg to {phone_number}")
+            print(f"Successfully sent WhatsApp msg to {clean_to}")
     except Exception as e:
         print(f"Error sending WhatsApp message: {str(e)}")
 
