@@ -73,8 +73,8 @@ def process_whatsapp_message(store_id, text_message, phone_number):
     PHONE_ID = os.environ.get("WHATSAPP_PHONE_ID")
 
     if not WHATSAPP_TOKEN or not PHONE_ID:
-        print("MISSING WHATSAPP CREDENTIALS in .env!")
-        print(f"Would have sent: {output_msg} to {phone_number}")
+        print("MISSING WHATSAPP CREDENTIALS in .env!", flush=True)
+        print(f"Would have sent: {output_msg} to {phone_number}", flush=True)
         return
 
     clean_to = ''.join(filter(str.isdigit, str(phone_number)))
@@ -90,7 +90,7 @@ def process_whatsapp_message(store_id, text_message, phone_number):
         "text": {"body": output_msg},
     }
 
-    print(f"[OUTBOUND WHATSAPP SENDING] to {clean_to} using PHONE_ID={PHONE_ID}")
+    print(f"[OUTBOUND WHATSAPP SENDING] to {clean_to} using PHONE_ID={PHONE_ID}", flush=True)
     try:
         response = requests.post(
             f"https://graph.facebook.com/v19.0/{PHONE_ID}/messages",
@@ -98,13 +98,13 @@ def process_whatsapp_message(store_id, text_message, phone_number):
             json=payload,
             timeout=10
         )
-        print(f"[OUTBOUND META RESULT] status={response.status_code}, response={response.text}")
+        print(f"[OUTBOUND META RESULT] status={response.status_code}, response={response.text}", flush=True)
         if response.status_code != 200:
-            print(f"Failed to send WhatsApp msg: {response.text}")
+            print(f"Failed to send WhatsApp msg: {response.text}", flush=True)
         else:
-            print(f"Successfully sent WhatsApp msg to {clean_to}")
+            print(f"Successfully sent WhatsApp msg to {clean_to}", flush=True)
     except Exception as e:
-        print(f"Error sending WhatsApp message: {str(e)}")
+        print(f"Error sending WhatsApp message: {str(e)}", flush=True)
 
 
 @method_decorator(csrf_exempt, name='dispatch')
@@ -125,7 +125,7 @@ class WhatsAppWebhookView(View):
         """Receives incoming messages from WhatsApp"""
         try:
             body = json.loads(request.body)
-            print(f"[WHATSAPP WEBHOOK RECEIVED]: {json.dumps(body)}")
+            print(f"[WHATSAPP WEBHOOK RECEIVED]: {json.dumps(body)}", flush=True)
             
             # Parse WhatsApp payload
             if body.get("object") == "whatsapp_business_account":
@@ -139,6 +139,7 @@ class WhatsAppWebhookView(View):
                                 # Only process text for this initial implementation
                                 if msg.get("type") == "text":
                                     text = msg.get("text", {}).get("body", "")
+                                    print(f"[PROCESSING MSG]: '{text}' from {phone_number}", flush=True)
                                     
                                     # Smart Store Identification: Match sender phone number against store whatsapp_number or phone
                                     clean_phone = ''.join(filter(str.isdigit, str(phone_number)))
@@ -170,6 +171,7 @@ class WhatsAppWebhookView(View):
                                         )
 
                                     if store:
+                                        print(f"[FOUND STORE]: {store.name} (id={store.id})", flush=True)
                                         # Spawn a background thread to process the AI request 
                                         # so we can return 200 OK immediately to Meta
                                         thread = threading.Thread(
@@ -178,11 +180,11 @@ class WhatsAppWebhookView(View):
                                         )
                                         thread.start()
                                     else:
-                                        print(f"No store found for incoming message from {phone_number}: {text}")
+                                        print(f"No store found for incoming message from {phone_number}: {text}", flush=True)
                                         
             # We MUST return 200 OK immediately so Meta doesn't retry
             return HttpResponse("EVENT_RECEIVED", status=200)
             
         except Exception as e:
-            print(f"WhatsApp Webhook Error: {e}")
+            print(f"WhatsApp Webhook Error: {e}", flush=True)
             return HttpResponse("ERROR", status=500)
