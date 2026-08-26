@@ -39,3 +39,4 @@ pillow==11.0.0
 # sentence-transformers
 # qdrant-client
 # openai-whisper
+environ

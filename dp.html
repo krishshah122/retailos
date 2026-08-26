@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DP Curated 100 Tracker</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --accent: #6366f1;
+            --accent-hover: #4f46e5;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-color: #334155;
+            --success: #10b981;
+            --item-hover: #26334d;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            padding: 2rem 1rem;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #818cf8 0%, #c084fc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+
+        p.subtitle {
+            color: var(--text-muted);
+            font-size: 1rem;
+        }
+
+        /* Stats & Progress Bar */
+        .progress-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+        }
+
+        .progress-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+            font-weight: 600;
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 12px;
+            background-color: #0f172a;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #6366f1, #10b981);
+            transition: width 0.4s ease;
+        }
+
+        /* Controls: Search & Filters */
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .search-bar {
+            width: 100%;
+            padding: 0.85rem 1.2rem;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background-color: var(--card-bg);
+            color: var(--text-main);
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .search-bar:focus {
+            border-color: var(--accent);
+        }
+
+        .filter-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .filter-btn {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-muted);
+            padding: 0.4rem 0.8rem;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+
+        .filter-btn:hover, .filter-btn.active {
+            background-color: var(--accent);
+            color: #fff;
+            border-color: var(--accent);
+        }
+
+        /* Pattern Sections */
+        .pattern-group {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .pattern-header {
+            padding: 1rem 1.5rem;
+            background-color: rgba(255, 255, 255, 0.02);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .pattern-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #e2e8f0;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .pattern-badge {
+            font-size: 0.8rem;
+            background-color: var(--border-color);
+            color: var(--text-muted);
+            padding: 0.2rem 0.6rem;
+            border-radius: 12px;
+        }
+
+        .problem-list {
+            list-style: none;
+        }
+
+        .problem-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.85rem 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            transition: background-color 0.15s;
+        }
+
+        .problem-item:last-child {
+            border-bottom: none;
+        }
+
+        .problem-item:hover {
+            background-color: var(--item-hover);
+        }
+
+        .problem-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .checkbox-container input {
+            display: none;
+        }
+
+        .checkmark {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--text-muted);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .checkbox-container input:checked ~ .checkmark {
+            background-color: var(--success);
+            border-color: var(--success);
+        }
+
+        .checkmark:after {
+            content: "✓";
+            color: white;
+            font-size: 14px;
+            display: none;
+            font-weight: bold;
+        }
+
+        .checkbox-container input:checked ~ .checkmark:after {
+            display: block;
+        }
+
+        .sno {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            min-width: 30px;
+        }
+
+        .problem-name {
+            font-size: 0.95rem;
+            font-weight: 500;
+
+        }
+
+        .problem-item.completed .problem-name {
+            text-decoration: line-through;
+            color: var(--text-muted);
+        }
+
+        .lc-link {
+            color: var(--accent);
+            text-decoration: none;
+            font-size: 0.85rem;
+            padding: 0.3rem 0.7rem;
+            border: 1px solid var(--accent);
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+
+        .lc-link:hover {
+            background-color: var(--accent);
+            color: #fff;
+        }
+
+        .reset-btn {
+            background: transparent;
+            border: 1px solid #ef4444;
+            color: #ef4444;
+            padding: 0.4rem 0.8rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            margin-top: 1rem;
+            transition: all 0.2s;
+        }
+
+        .reset-btn:hover {
+            background-color: #ef4444;
+            color: #fff;
+        }
+
+        @media (max-width: 600px) {
+            .problem-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
+            }
+
+            .problem-right {
+                align-self: flex-end;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Dynamic Programming 100</h1>
+        <p class="subtitle">Pattern-Wise Curated Sheet for Coding Interviews</p>
+    </header>
+
+    <div class="progress-card">
+        <div class="progress-info">
+            <span>Overall Progress</span>
+            <span id="progress-text">0 / 110 Completed (0%)</span>
+        </div>
+        <div class="progress-bar-container">
+            <div class="progress-bar" id="progress-bar"></div>
+        </div>
+        <button class="reset-btn" onclick="resetProgress()">Reset Progress</button>
+    </div>
+
+    <div class="controls">
+        <input type="text" id="search-input" class="search-bar" placeholder="Search problems or patterns..." oninput="filterData()">
+        <div class="filter-tags" id="filter-tags">
+            <!-- Filter tags will be dynamically generated -->
+        </div>
+    </div>
+
+    <div id="patterns-container">
+        <!-- Pattern sections will be dynamically rendered here -->
+    </div>
+</div>
+
+<script>
+    function getLeetCodeUrl(problem) {
+        const directLinks = {
+            "Fibonacci Number": "https://leetcode.com/problems/fibonacci-number/",
+            "Climbing Stairs": "https://leetcode.com/problems/climbing-stairs/",
+            "Min Cost Climbing Stairs": "https://leetcode.com/problems/min-cost-climbing-stairs/",
+            "N-th Tribonacci Number": "https://leetcode.com/problems/n-th-tribonacci-number/",
+            "House Robber": "https://leetcode.com/problems/house-robber/",
+            "House Robber II": "https://leetcode.com/problems/house-robber-ii/",
+            "Delete and Earn": "https://leetcode.com/problems/delete-and-earn/",
+            "Decode Ways": "https://leetcode.com/problems/decode-ways/",
+            "Solving Questions With Brainpower": "https://leetcode.com/problems/solving-questions-with-brainpower/",
+            "Minimum Cost For Tickets": "https://leetcode.com/problems/minimum-cost-for-tickets/",
+            "Coin Change": "https://leetcode.com/problems/coin-change/",
+            "Coin Change II": "https://leetcode.com/problems/coin-change-2/",
+            "Combination Sum IV": "https://leetcode.com/problems/combination-sum-iv/",
+            "Partition Equal Subset Sum": "https://leetcode.com/problems/partition-equal-subset-sum/",
+            "Target Sum": "https://leetcode.com/problems/target-sum/",
+            "Ones and Zeroes": "https://leetcode.com/problems/ones-and-zeroes/",
+            "Last Stone Weight II": "https://leetcode.com/problems/last-stone-weight-ii/",
+            "Tallest Billboard": "https://leetcode.com/problems/tallest-billboard/",
+            "Profitable Schemes": "https://leetcode.com/problems/profitable-schemes/",
+            "Unique Paths": "https://leetcode.com/problems/unique-paths/",
+            "Unique Paths II": "https://leetcode.com/problems/unique-paths-ii/",
+            "Minimum Path Sum": "https://leetcode.com/problems/minimum-path-sum/",
+            "Triangle": "https://leetcode.com/problems/triangle/",
+            "Dungeon Game": "https://leetcode.com/problems/dungeon-game/",
+            "Minimum Falling Path Sum": "https://leetcode.com/problems/minimum-falling-path-sum/",
+            "Maximal Square": "https://leetcode.com/problems/maximal-square/",
+            "Cherry Pickup": "https://leetcode.com/problems/cherry-pickup/",
+            "Cherry Pickup II": "https://leetcode.com/problems/cherry-pickup-ii/",
+            "Longest Common Subsequence": "https://leetcode.com/problems/longest-common-subsequence/",
+            "Edit Distance": "https://leetcode.com/problems/edit-distance/",
+            "Delete Operation for Two Strings": "https://leetcode.com/problems/delete-operation-for-two-strings/",
+            "Distinct Subsequences": "https://leetcode.com/problems/distinct-subsequences/",
+            "Interleaving String": "https://leetcode.com/problems/interleaving-string/",
+            "Shortest Common Supersequence": "https://leetcode.com/problems/shortest-common-supersequence/",
+            "Wildcard Matching": "https://leetcode.com/problems/wildcard-matching/",
+            "Regular Expression Matching": "https://leetcode.com/problems/regular-expression-matching/",
+            "Word Break": "https://leetcode.com/problems/word-break/",
+            "Palindrome Partitioning II": "https://leetcode.com/problems/palindrome-partitioning-ii/",
+            "Longest Palindromic Subsequence": "https://leetcode.com/problems/longest-palindromic-subsequence/",
+            "Strange Printer": "https://leetcode.com/problems/strange-printer/",
+            "Longest Increasing Subsequence": "https://leetcode.com/problems/longest-increasing-subsequence/",
+            "Number of LIS": "https://leetcode.com/problems/number-of-longest-increasing-subsequence/",
+            "Russian Doll Envelopes": "https://leetcode.com/problems/russian-doll-envelopes/",
+            "Maximum Length of Pair Chain": "https://leetcode.com/problems/maximum-length-of-pair-chain/",
+            "Longest Arithmetic Subsequence": "https://leetcode.com/problems/longest-arithmetic-subsequence/",
+            "Wiggle Subsequence": "https://leetcode.com/problems/wiggle-subsequence/",
+            "Best Time I": "https://leetcode.com/problems/best-time-to-buy-and-sell-stock/",
+            "Best Time II": "https://leetcode.com/problems/best-time-to-buy-and-sell-stock-ii/",
+            "Best Time III": "https://leetcode.com/problems/best-time-to-buy-and-sell-stock-iii/",
+            "Best Time IV": "https://leetcode.com/problems/best-time-to-buy-and-sell-stock-iv/",
+            "Cooldown": "https://leetcode.com/problems/best-time-to-buy-and-sell-stock-with-cooldown/",
+            "Transaction Fee": "https://leetcode.com/problems/best-time-to-buy-and-sell-stock-with-transaction-fee/",
+            "Stone Game": "https://leetcode.com/problems/stone-game/",
+            "Stone Game II": "https://leetcode.com/problems/stone-game-ii/",
+            "Stone Game III": "https://leetcode.com/problems/stone-game-iii/",
+            "Predict the Winner": "https://leetcode.com/problems/predict-the-winner/",
+            "Can I Win": "https://leetcode.com/problems/can-i-win/",
+            "Divisor Game": "https://leetcode.com/problems/divisor-game/",
+            "House Robber III": "https://leetcode.com/problems/house-robber-iii/",
+            "Binary Tree Cameras": "https://leetcode.com/problems/binary-tree-cameras/",
+            "Binary Tree Maximum Path Sum": "https://leetcode.com/problems/binary-tree-maximum-path-sum/",
+            "Longest ZigZag Path": "https://leetcode.com/problems/longest-zigzag-path-in-a-binary-tree/",
+            "Longest Univalue Path": "https://leetcode.com/problems/longest-univalue-path/",
+            "Sum of Distances in Tree": "https://leetcode.com/problems/sum-of-distances-in-tree/",
+            "Longest Increasing Path": "https://leetcode.com/problems/longest-increasing-path-in-a-matrix/",
+            "Parallel Courses III": "https://leetcode.com/problems/parallel-courses-iii/",
+            "Cheapest Flights": "https://leetcode.com/problems/cheapest-flights-within-k-stops/",
+            "Shortest Path Visiting All Nodes": "https://leetcode.com/problems/shortest-path-visiting-all-nodes/",
+            "Cat and Mouse": "https://leetcode.com/problems/cat-and-mouse/",
+            "Frog Position": "https://leetcode.com/problems/frog-position/",
+            "Count All Possible Routes": "https://leetcode.com/problems/count-all-possible-routes/",
+            "Matchsticks to Square": "https://leetcode.com/problems/matchsticks-to-square/",
+            "Partition to K Equal Sum": "https://leetcode.com/problems/partition-to-k-equal-sum-subsets/",
+            "Parallel Courses II": "https://leetcode.com/problems/parallel-courses-ii/",
+            "Maximum Students Taking Exam": "https://leetcode.com/problems/maximum-students-taking-exam/",
+            "Special Permutations": "https://leetcode.com/problems/special-permutations/",
+            "Stickers to Spell Word": "https://leetcode.com/problems/stickers-to-spell-word/",
+            "Fair Distribution of Cookies": "https://leetcode.com/problems/fair-distribution-of-cookies/",
+            "Number of Digit One": "https://leetcode.com/problems/number-of-digit-one/",
+            "Non-negative Integers": "https://leetcode.com/problems/non-negative-integers-without-consecutive-ones/",
+            "Count Special Integers": "https://leetcode.com/problems/count-special-integers/",
+            "Knight Probability": "https://leetcode.com/problems/knight-probability-in-chessboard/",
+            "New 21 Game": "https://leetcode.com/problems/new-21-game/",
+            "Soup Servings": "https://leetcode.com/problems/soup-servings/",
+            "Toss Strange Coins": "https://leetcode.com/problems/toss-strange-coins/",
+            "Burst Balloons": "https://leetcode.com/problems/burst-balloons/",
+            "Minimum Cost Tree": "https://leetcode.com/problems/minimum-cost-tree-from-leaf-values/",
+            "Merge Stones": "https://leetcode.com/problems/merge-stones/",
+            "Split Array Largest Sum": "https://leetcode.com/problems/split-array-largest-sum/",
+            "Partition Array Max Sum": "https://leetcode.com/problems/partition-array-for-maximum-sum/",
+            "Allocate Mailboxes": "https://leetcode.com/problems/allocate-mailboxes/",
+            "Cut a Stick": "https://leetcode.com/problems/cut-a-stick/",
+            "Stone Game V": "https://leetcode.com/problems/stone-game-v/",
+            "Paint House III": "https://leetcode.com/problems/paint-house-iii/",
+            "Paint Walls": "https://leetcode.com/problems/paint-the-walls/",
+            "Remove Boxes": "https://leetcode.com/problems/remove-boxes/",
+            "Freedom Trail": "https://leetcode.com/problems/freedom-trail/",
+            "Music Playlists": "https://leetcode.com/problems/music-playlists/",
+            "Cutting a Pizza": "https://leetcode.com/problems/cutting-a-pizza/",
+            "Selling Pieces of Wood": "https://leetcode.com/problems/selling-pieces-of-wood/"
+        };
+
+        return directLinks[problem] || `https://leetcode.com/problemset/all/?search=${encodeURIComponent(problem)}`;
+    }
+
+    const dataset = [
+        { sno: 1, pattern: "Linear DP", problem: "Fibonacci Number" },
+        { sno: 2, pattern: "Linear DP", problem: "Climbing Stairs" },
+        { sno: 3, pattern: "Linear DP", problem: "Min Cost Climbing Stairs" },
+        { sno: 4, pattern: "Linear DP", problem: "N-th Tribonacci Number" },
+        { sno: 5, pattern: "Linear DP", problem: "House Robber" },
+        { sno: 6, pattern: "Linear DP", problem: "House Robber II" },
+        { sno: 7, pattern: "Linear DP", problem: "Delete and Earn" },
+        { sno: 8, pattern: "Linear DP", problem: "Decode Ways" },
+        { sno: 9, pattern: "Linear DP", problem: "Solving Questions With Brainpower" },
+        { sno: 10, pattern: "Linear DP", problem: "Minimum Cost For Tickets" },
+        { sno: 11, pattern: "Knapsack DP", problem: "Coin Change" },
+        { sno: 12, pattern: "Knapsack DP", problem: "Coin Change II" },
+        { sno: 13, pattern: "Knapsack DP", problem: "Combination Sum IV" },
+        { sno: 14, pattern: "Knapsack DP", problem: "Partition Equal Subset Sum" },
+        { sno: 15, pattern: "Knapsack DP", problem: "Target Sum" },
+        { sno: 16, pattern: "Knapsack DP", problem: "Ones and Zeroes" },
+        { sno: 17, pattern: "Knapsack DP", problem: "Last Stone Weight II" },
+        { sno: 18, pattern: "Knapsack DP", problem: "Tallest Billboard" },
+        { sno: 19, pattern: "Knapsack DP", problem: "Profitable Schemes" },
+        { sno: 20, pattern: "Knapsack DP", problem: "Maximum Value of K Coins From Piles" },
+        { sno: 21, pattern: "Grid DP", problem: "Unique Paths" },
+        { sno: 22, pattern: "Grid DP", problem: "Unique Paths II" },
+        { sno: 23, pattern: "Grid DP", problem: "Minimum Path Sum" },
+        { sno: 24, pattern: "Grid DP", problem: "Triangle" },
+        { sno: 25, pattern: "Grid DP", problem: "Dungeon Game" },
+        { sno: 26, pattern: "Grid DP", problem: "Minimum Falling Path Sum" },
+        { sno: 27, pattern: "Grid DP", problem: "Maximal Square" },
+        { sno: 28, pattern: "Grid DP", problem: "Cherry Pickup" },
+        { sno: 29, pattern: "Grid DP", problem: "Cherry Pickup II" },
+        { sno: 30, pattern: "Grid DP", problem: "Number of Increasing Paths in a Grid" },
+        { sno: 31, pattern: "String DP", problem: "Longest Common Subsequence" },
+        { sno: 32, pattern: "String DP", problem: "Edit Distance" },
+        { sno: 33, pattern: "String DP", problem: "Delete Operation for Two Strings" },
+        { sno: 34, pattern: "String DP", problem: "Distinct Subsequences" },
+        { sno: 35, pattern: "String DP", problem: "Interleaving String" },
+        { sno: 36, pattern: "String DP", problem: "Shortest Common Supersequence" },
+        { sno: 37, pattern: "String DP", problem: "Wildcard Matching" },
+        { sno: 38, pattern: "String DP", problem: "Regular Expression Matching" },
+        { sno: 39, pattern: "String DP", problem: "Word Break" },
+        { sno: 40, pattern: "String DP", problem: "Palindrome Partitioning II" },
+        { sno: 41, pattern: "String DP", problem: "Longest Palindromic Subsequence" },
+        { sno: 42, pattern: "String DP", problem: "Strange Printer" },
+        { sno: 43, pattern: "LIS DP", problem: "Longest Increasing Subsequence" },
+        { sno: 44, pattern: "LIS DP", problem: "Number of LIS" },
+        { sno: 45, pattern: "LIS DP", problem: "Russian Doll Envelopes" },
+        { sno: 46, pattern: "LIS DP", problem: "Maximum Length of Pair Chain" },
+        { sno: 47, pattern: "LIS DP", problem: "Largest Divisible Subset" },
+        { sno: 48, pattern: "LIS DP", problem: "Longest Arithmetic Subsequence" },
+        { sno: 49, pattern: "LIS DP", problem: "Longest Ideal Subsequence" },
+        { sno: 50, pattern: "LIS DP", problem: "Wiggle Subsequence" },
+        { sno: 51, pattern: "Stock DP", problem: "Best Time I" },
+        { sno: 52, pattern: "Stock DP", problem: "Best Time II" },
+        { sno: 53, pattern: "Stock DP", problem: "Best Time III" },
+        { sno: 54, pattern: "Stock DP", problem: "Best Time IV" },
+        { sno: 55, pattern: "Stock DP", problem: "Cooldown" },
+        { sno: 56, pattern: "Stock DP", problem: "Transaction Fee" },
+        { sno: 57, pattern: "Game DP", problem: "Stone Game" },
+        { sno: 58, pattern: "Game DP", problem: "Stone Game II" },
+        { sno: 59, pattern: "Game DP", problem: "Stone Game III" },
+        { sno: 60, pattern: "Game DP", problem: "Predict the Winner" },
+        { sno: 61, pattern: "Game DP", problem: "Can I Win" },
+        { sno: 62, pattern: "Game DP", problem: "Divisor Game" },
+        { sno: 63, pattern: "Tree DP", problem: "House Robber III" },
+        { sno: 64, pattern: "Tree DP", problem: "Binary Tree Cameras" },
+        { sno: 65, pattern: "Tree DP", problem: "Binary Tree Maximum Path Sum" },
+        { sno: 66, pattern: "Tree DP", problem: "Longest ZigZag Path" },
+        { sno: 67, pattern: "Tree DP", problem: "Longest Univalue Path" },
+        { sno: 68, pattern: "Tree DP", problem: "Sum of Distances in Tree" },
+        { sno: 69, pattern: "Graph DP", problem: "Longest Increasing Path" },
+        { sno: 70, pattern: "Graph DP", problem: "Parallel Courses III" },
+        { sno: 71, pattern: "Graph DP", problem: "Cheapest Flights" },
+        { sno: 72, pattern: "Graph DP", problem: "Shortest Path Visiting All Nodes" },
+        { sno: 73, pattern: "Graph DP", problem: "Cat and Mouse" },
+        { sno: 74, pattern: "Graph DP", problem: "Frog Position" },
+        { sno: 75, pattern: "Graph DP", problem: "Count All Possible Routes" },
+        { sno: 76, pattern: "Bitmask DP", problem: "Matchsticks to Square" },
+        { sno: 77, pattern: "Bitmask DP", problem: "Partition to K Equal Sum" },
+        { sno: 78, pattern: "Bitmask DP", problem: "Parallel Courses II" },
+        { sno: 79, pattern: "Bitmask DP", problem: "Maximum Students Taking Exam" },
+        { sno: 80, pattern: "Bitmask DP", problem: "Special Permutations" },
+        { sno: 81, pattern: "Bitmask DP", problem: "Stickers to Spell Word" },
+        { sno: 82, pattern: "Bitmask DP", problem: "Fair Distribution of Cookies" },
+        { sno: 83, pattern: "Digit DP", problem: "Number of Digit One" },
+        { sno: 84, pattern: "Digit DP", problem: "Non-negative Integers" },
+        { sno: 85, pattern: "Digit DP", problem: "Count Special Integers" },
+        { sno: 86, pattern: "Digit DP", problem: "Count Stepping Numbers" },
+        { sno: 87, pattern: "Digit DP", problem: "Beautiful Integers" },
+        { sno: 88, pattern: "Probability DP", problem: "Knight Probability" },
+        { sno: 89, pattern: "Probability DP", problem: "New 21 Game" },
+        { sno: 90, pattern: "Probability DP", problem: "Soup Servings" },
+        { sno: 91, pattern: "Probability DP", problem: "Toss Strange Coins" },
+        { sno: 92, pattern: "MCM / Interval / Partition DP", problem: "Burst Balloons" },
+        { sno: 93, pattern: "MCM / Interval / Partition DP", problem: "Minimum Cost Tree" },
+        { sno: 94, pattern: "MCM / Interval / Partition DP", problem: "Merge Stones" },
+        { sno: 95, pattern: "MCM / Interval / Partition DP", problem: "Triangulation" },
+        { sno: 96, pattern: "MCM / Interval / Partition DP", problem: "Palindrome Partitioning III" },
+        { sno: 97, pattern: "MCM / Interval / Partition DP", problem: "Job Schedule" },
+        { sno: 98, pattern: "MCM / Interval / Partition DP", problem: "Split Array Largest Sum" },
+        { sno: 99, pattern: "MCM / Interval / Partition DP", problem: "Partition Array Max Sum" },
+        { sno: 100, pattern: "MCM / Interval / Partition DP", problem: "Allocate Mailboxes" },
+        { sno: 101, pattern: "MCM / Interval / Partition DP", problem: "Cut a Stick" },
+        { sno: 102, pattern: "MCM / Interval / Partition DP", problem: "Stone Game V" },
+        { sno: 103, pattern: "Advanced Hybrid DP", problem: "Paint House III" },
+        { sno: 104, pattern: "Advanced Hybrid DP", problem: "Paint Walls" },
+        { sno: 105, pattern: "Advanced Hybrid DP", problem: "Remove Boxes" },
+        { sno: 106, pattern: "Advanced Hybrid DP", problem: "Freedom Trail" },
+        { sno: 107, pattern: "Advanced Hybrid DP", problem: "Music Playlists" },
+        { sno: 108, pattern: "Advanced Hybrid DP", problem: "Cutting a Pizza" },
+        { sno: 109, pattern: "Advanced Hybrid DP", problem: "Maximum Points with Cost" },
+        { sno: 110, pattern: "Advanced Hybrid DP", problem: "Selling Pieces of Wood" }
+    ];
+
+    let completedSet = new Set(JSON.parse(localStorage.getItem('dp_completed_items') || '[]'));
+    let activeFilter = 'All';
+
+    function init() {
+        renderFilterTags();
+        renderData();
+        updateProgress();
+    }
+
+    function renderFilterTags() {
+        const patterns = ['All', ...new Set(dataset.map(item => item.pattern))];
+        const tagsContainer = document.getElementById('filter-tags');
+        tagsContainer.innerHTML = '';
+
+        patterns.forEach(p => {
+            const btn = document.createElement('button');
+            btn.className = `filter-btn ${p === activeFilter ? 'active' : ''}`;
+            btn.innerText = p;
+            btn.onclick = () => {
+                activeFilter = p;
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                filterData();
+            };
+            tagsContainer.appendChild(btn);
+        });
+    }
+
+    function renderData() {
+        const container = document.getElementById('patterns-container');
+        container.innerHTML = '';
+
+        const searchQuery = document.getElementById('search-input').value.toLowerCase();
+
+        // Group dataset by pattern
+        const grouped = {};
+        dataset.forEach(item => {
+            if (!grouped[item.pattern]) grouped[item.pattern] = [];
+            grouped[item.pattern].push(item);
+        });
+
+        for (const [pattern, problems] of Object.entries(grouped)) {
+            if (activeFilter !== 'All' && activeFilter !== pattern) continue;
+
+            // Filter problems by search
+            const filteredProblems = problems.filter(p => 
+                p.problem.toLowerCase().includes(searchQuery) || 
+                p.pattern.toLowerCase().includes(searchQuery) ||
+                p.sno.toString().includes(searchQuery)
+            );
+
+            if (filteredProblems.length === 0) continue;
+
+            const patternCompleted = filteredProblems.filter(p => completedSet.has(p.sno)).length;
+
+            const groupEl = document.createElement('div');
+            groupEl.className = 'pattern-group';
+
+            groupEl.innerHTML = `
+                <div class="pattern-header" onclick="togglePattern(this)">
+                    <div class="pattern-title">
+                        <span>${pattern}</span>
+                        <span class="pattern-badge">${patternCompleted}/${filteredProblems.length}</span>
+                    </div>
+                    <span style="color: var(--text-muted);">&#9660;</span>
+                </div>
+                <ul class="problem-list">
+                    ${filteredProblems.map(p => `
+                        <li class="problem-item ${completedSet.has(p.sno) ? 'completed' : ''}" id="item-${p.sno}">
+                            <div class="problem-left">
+                                <label class="checkbox-container">
+                                    <input type="checkbox" ${completedSet.has(p.sno) ? 'checked' : ''} onchange="toggleComplete(${p.sno})">
+                                    <span class="checkmark"></span>
+                                </label>
+                                <span class="sno">#${p.sno}</span>
+                                <span class="problem-name">${p.problem}</span>
+                            </div>
+                            <div class="problem-right">
+                                <a class="lc-link" href="${getLeetCodeUrl(p.problem)}" target="_blank" rel="noopener noreferrer">Solve ↗</a>
+                            </div>
+                        </li>
+                    `).join('')}
+                </ul>
+            `;
+            container.appendChild(groupEl);
+        }
+    }
+
+    function toggleComplete(sno) {
+        if (completedSet.has(sno)) {
+            completedSet.delete(sno);
+        } else {
+            completedSet.add(sno);
+        }
+        localStorage.setItem('dp_completed_items', JSON.stringify(Array.from(completedSet)));
+        
+        const itemEl = document.getElementById(`item-${sno}`);
+        if (itemEl) {
+            itemEl.classList.toggle('completed', completedSet.has(sno));
+        }
+
+        updateProgress();
+        // Re-render badges
+        renderData();
+    }
+
+    function updateProgress() {
+        const total = dataset.length;
+        const count = completedSet.size;
+        const percentage = Math.round((count / total) * 100);
+
+        document.getElementById('progress-text').innerText = `${count} / ${total} Completed (${percentage}%)`;
+        document.getElementById('progress-bar').style.width = `${percentage}%`;
+    }
+
+    function togglePattern(header) {
+        const list = header.nextElementSibling;
+        const arrow = header.querySelector('span:last-child');
+        if (list.style.display === 'none') {
+            list.style.display = 'block';
+            arrow.innerHTML = '&#9660;';
+        } else {
+            list.style.display = 'none';
+            arrow.innerHTML = '&#9654;';
+        }
+    }
+
+    function filterData() {
+        renderData();
+    }
+
+    function resetProgress() {
+        if (confirm("Are you sure you want to reset all your progress?")) {
+            completedSet.clear();
+            localStorage.removeItem('dp_completed_items');
+            renderData();
+            updateProgress();
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', init);
+</script>
+
+</body>
+</html>
