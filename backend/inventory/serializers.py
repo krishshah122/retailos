@@ -1,6 +1,12 @@
 from rest_framework import serializers
 
-from inventory.models import Product
+from inventory.models import Product, Supplier
+
+class SupplierSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Supplier
+        fields = ['id', 'store', 'name', 'phone', 'email', 'address', 'gstin', 'tags', 'created_at']
+        read_only_fields = ['id', 'created_at', 'store']
 
 
 class ProductCreateSerializer(serializers.Serializer):
@@ -15,6 +21,11 @@ class ProductCreateSerializer(serializers.Serializer):
     supplier_id = serializers.UUIDField(required=False, allow_null=True)
     initial_quantity = serializers.IntegerField(default=0)
 
+    def validate_category(self, value):
+        if value:
+            return value.strip().title()
+        return value
+
 
 class ProductUpdateSerializer(serializers.Serializer):
     name = serializers.CharField(max_length=255, required=False)
@@ -23,6 +34,11 @@ class ProductUpdateSerializer(serializers.Serializer):
     cost_price = serializers.FloatField(required=False)
     sell_price = serializers.FloatField(required=False)
     supplier_id = serializers.UUIDField(required=False, allow_null=True)
+
+    def validate_category(self, value):
+        if value:
+            return value.strip().title()
+        return value
 
 
 class ProductOutSerializer(serializers.Serializer):

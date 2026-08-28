@@ -26,6 +26,7 @@ langgraph==0.2.60
 langchain==0.3.14
 langchain-core<0.4.0
 langchain-google-genai<3.0.0
+langchain-groq>=0.2,<1.0
 google-generativeai
 langsmith<0.3.0
 openai==1.58.1

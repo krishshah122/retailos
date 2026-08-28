@@ -13,6 +13,7 @@ class Supplier(models.Model):
     email = models.EmailField(max_length=255, null=True, blank=True)
     address = models.TextField(null=True, blank=True)
     gstin = models.CharField(max_length=15, null=True, blank=True)
+    tags = models.CharField(max_length=255, null=True, blank=True)  # e.g., "Mobile Accessories, Samsung"
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

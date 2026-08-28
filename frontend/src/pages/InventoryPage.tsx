@@ -31,7 +31,7 @@ export default function InventoryPage() {
   const { data: products, isLoading } = useQuery({
     queryKey: ["products", storeId],
     queryFn: async () => {
-      const { data } = await api.get<Product[]>("/products", { params: { store_id: storeId } });
+      const { data } = await api.get<Product[]>("/products", { params: { store_id: storeId, limit: 1000 } });
       return data;
     },
     enabled: !!storeId,

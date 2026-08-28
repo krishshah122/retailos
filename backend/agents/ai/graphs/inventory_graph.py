@@ -5,7 +5,6 @@ from pydantic import BaseModel, Field
 from typing import Literal, List, Optional
 from django.conf import settings
 from langchain_core.messages import HumanMessage
-from langchain_google_genai import ChatGoogleGenerativeAI
 
 from agents.ai.state import AgentState
 from inventory.models import Product, Inventory, InventoryTransaction
@@ -19,6 +18,7 @@ class InventoryAction(BaseModel):
     product_name: str = Field(description="The name of the product")
     quantity: int = Field(default=0, description="The quantity to add or subtract. Positive for adding stock, negative for selling stock.")
     price: float = Field(default=0.0, description="The unit price of the product, if applicable.")
+    category: Optional[str] = Field(default=None, description="The category of the product (e.g., mobile, electronics, accessories).")
     sku: Optional[str] = Field(default=None, description="SKU or Barcode if visible.")
 
 class InventoryActionsList(BaseModel):
@@ -28,12 +28,31 @@ class InventoryActionsList(BaseModel):
 
 def process_voice_or_image(state: AgentState) -> AgentState:
     """Pre-process audio/image to text before extraction."""
-    # With Gemini, we can skip pre-processing and send the image/audio directly to the structured extractor!
     return state
 
 
+def _get_llm(input_type: str):
+    """Get the appropriate LLM based on input type.
+    - Text: Use Groq (llama-3.3-70b) — ultra-fast, generous free tier
+    - Image: Use Gemini — supports vision/image input
+    """
+    if input_type == "image" and settings.GEMINI_API_KEY:
+        from langchain_google_genai import ChatGoogleGenerativeAI
+        return ChatGoogleGenerativeAI(model="gemini-2.0-flash-lite", temperature=0, api_key=settings.GEMINI_API_KEY)
+    
+    if settings.GROQ_API_KEY:
+        from langchain_groq import ChatGroq
+        return ChatGroq(model="openai/gpt-oss-20b", temperature=0, api_key=settings.GROQ_API_KEY)
+    
+    if settings.GEMINI_API_KEY:
+        from langchain_google_genai import ChatGoogleGenerativeAI
+        return ChatGoogleGenerativeAI(model="gemini-2.0-flash-lite", temperature=0, api_key=settings.GEMINI_API_KEY)
+    
+    return None
+
+
 def extract_entities(state: AgentState) -> AgentState:
-    """Use Gemini to extract structured intents from text, voice, or images directly."""
+    """Extract structured intents from text or images using Groq (text) or Gemini (images)."""
     if state.get("error"):
         return state
         
@@ -41,12 +60,12 @@ def extract_entities(state: AgentState) -> AgentState:
     payload = state.get("input_payload", {})
     trace = state.get("node_trace", [])
     
-    if not settings.GEMINI_API_KEY:
-        return {**state, "error": "Google Gemini API Key is missing. Please add GEMINI_API_KEY to your .env file."}
+    llm = _get_llm(input_type)
+    if not llm:
+        return {**state, "error": "No API key configured. Add GROQ_API_KEY or GEMINI_API_KEY to .env"}
         
-    # Use the generic latest flash alias to avoid deprecation errors
-    llm = ChatGoogleGenerativeAI(model="gemini-flash-latest", temperature=0, api_key=settings.GEMINI_API_KEY)
     structured_llm = llm.with_structured_output(InventoryActionsList)
+
     
     prompt_text = (
         "You are an AI assistant for a retail store managing inventory. "
@@ -81,11 +100,14 @@ def extract_entities(state: AgentState) -> AgentState:
             
     try:
         message = HumanMessage(content=content)
+        print(f"[extract_entities] Sending to Gemini: input_type={input_type}, content_parts={len(content)}")
         result = structured_llm.invoke([message])
         actions = [a.dict() for a in result.actions]
+        print(f"[extract_entities] Gemini returned {len(actions)} actions: {actions}")
     except Exception as e:
         actions = []
-        state["error"] = f"Gemini Extraction failed: {str(e)}"
+        state["error"] = f"LLM Extraction failed: {str(e)}"
+        print(f"[extract_entities] ERROR: {str(e)}")
         
     trace.append({"node": "extract_entities", "actions": actions})
     return {**state, "proposed_changes": actions, "node_trace": trace}
@@ -108,6 +130,8 @@ def execute_changes(state: AgentState) -> AgentState:
         qty = action.get("quantity", 0)
         price = action.get("price", 0.0)
         
+        category = action.get("category")
+        
         if not product_name:
             continue
             
@@ -120,8 +144,12 @@ def execute_changes(state: AgentState) -> AgentState:
                         "name": product_name,
                         "sell_price": price,
                         "cost_price": price,
+                        "category": category,
                     }
                 )
+                if not created and category:
+                    product.category = category
+                    product.save(update_fields=['category'])
                 inventory_obj, _ = Inventory.objects.get_or_create(product=product)
                 inventory_obj.quantity += qty
                 inventory_obj.save()
@@ -139,6 +167,9 @@ def execute_changes(state: AgentState) -> AgentState:
             elif action_type == "update_stock":
                 product = Product.objects.filter(store_id=store_id, name__icontains=product_name).first()
                 if product:
+                    if category:
+                        product.category = category
+                        product.save(update_fields=['category'])
                     inventory_obj, _ = Inventory.objects.get_or_create(product=product)
                     inventory_obj.quantity += qty
                     inventory_obj.save()

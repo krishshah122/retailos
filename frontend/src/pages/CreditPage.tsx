@@ -56,6 +56,7 @@ export default function CreditPage() {
       setShowAddModal(false);
       setForm({ customer_name: "", customer_phone: "", amount: "", due_date: "", note: "" });
       queryClient.invalidateQueries({ queryKey: ["credit", storeId] });
+      queryClient.invalidateQueries({ queryKey: ["customers", storeId] });
     },
   });
 
@@ -69,6 +70,7 @@ export default function CreditPage() {
       setPaymentCreditId(null);
       setPaymentForm({ amount: "", note: "" });
       queryClient.invalidateQueries({ queryKey: ["credit", storeId] });
+      queryClient.invalidateQueries({ queryKey: ["customers", storeId] });
     },
   });
 

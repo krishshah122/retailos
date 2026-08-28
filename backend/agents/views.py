@@ -98,16 +98,19 @@ class InventoryVoiceView(APIView):
         import base64
         content = file.read()
         b64_content = base64.b64encode(content).decode('utf-8')
+        print(f"[VoiceView] file={file.name}, content_type={file.content_type}, size={len(content)} bytes")
         run = run_supervisor(
             store_id=store_id,
             user_id=request.user.id,
             input_type="voice",
             payload={
-                "filename": file.name, 
+                "filename": file.name,
+                "content_type": file.content_type,
                 "size": len(content),
                 "file_b64": b64_content
             },
         )
+        print(f"[VoiceView] run status={run.status}, error={run.error}, output={run.output_payload}")
 
         out = AgentRunOutSerializer(run)
         return Response(out.data)

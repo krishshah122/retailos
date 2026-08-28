@@ -9,7 +9,6 @@ import CustomersPage from "@/pages/CustomersPage";
 import DashboardPage from "@/pages/DashboardPage";
 import ForecastPage from "@/pages/ForecastPage";
 import InventoryPage from "@/pages/InventoryPage";
-import InvoicesPage from "@/pages/InvoicesPage";
 import LoginPage from "@/pages/LoginPage";
 import OnboardingPage from "@/pages/OnboardingPage";
 import SettingsPage from "@/pages/SettingsPage";
@@ -54,7 +53,6 @@ export default function App() {
         <Route path="/ai-inventory" element={<AIInventoryPage />} />
         <Route path="/customers" element={<CustomersPage />} />
         <Route path="/credit" element={<CreditPage />} />
-        <Route path="/invoices" element={<InvoicesPage />} />
         <Route path="/suppliers" element={<SuppliersPage />} />
         <Route path="/analytics" element={<AnalyticsPage />} />
         <Route path="/forecast" element={<ForecastPage />} />

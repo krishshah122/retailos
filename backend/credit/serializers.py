@@ -24,3 +24,14 @@ class CreditOutSerializer(serializers.Serializer):
     due_date = serializers.DateField(allow_null=True)
     status = serializers.CharField()
     created_at = serializers.DateTimeField()
+
+
+class CustomerSummarySerializer(serializers.Serializer):
+    id = serializers.UUIDField()
+    name = serializers.CharField()
+    phone = serializers.CharField(allow_null=True, required=False)
+    total_outstanding = serializers.FloatField()
+    total_credit = serializers.FloatField()
+    entries_count = serializers.IntegerField()
+    last_entry_at = serializers.DateTimeField(allow_null=True)
+    created_at = serializers.DateTimeField()

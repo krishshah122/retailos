@@ -39,10 +39,33 @@ export interface DashboardStats {
 export interface CreditEntry {
   id: string;
   customer_id: string;
+  customer_name: string;
   amount: number;
   balance: number;
   due_date?: string;
-  status: "pending" | "partial" | "paid" | "overdue";
+  status: "PENDING" | "PARTIAL" | "PAID" | "OVERDUE" | "pending" | "partial" | "paid" | "overdue";
+  created_at: string;
+}
+
+export interface Customer {
+  id: string;
+  name: string;
+  phone?: string | null;
+  total_outstanding: number;
+  total_credit: number;
+  entries_count: number;
+  last_entry_at?: string | null;
+  created_at: string;
+}
+
+export interface Supplier {
+  id: string;
+  name: string;
+  phone?: string;
+  email?: string;
+  address?: string;
+  gstin?: string;
+  tags?: string;
   created_at: string;
 }
 

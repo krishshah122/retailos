@@ -1,17 +1,36 @@
-from rest_framework import status
+from rest_framework import status, viewsets
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.exceptions import PermissionDenied
 
-from inventory.models import Inventory, InventoryTransaction, Product
+from inventory.models import Inventory, InventoryTransaction, Product, Supplier
 from inventory.serializers import (
     InventoryAdjustSerializer,
     InventoryTransactionOutSerializer,
     ProductCreateSerializer,
     ProductOutSerializer,
     ProductUpdateSerializer,
+    SupplierSerializer,
 )
 from inventory.services import adjust_inventory, create_product
+
+
+class SupplierViewSet(viewsets.ModelViewSet):
+    serializer_class = SupplierSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        store_id = self.request.query_params.get("store_id")
+        if not store_id:
+            return Supplier.objects.none()
+        return Supplier.objects.filter(store_id=store_id)
+
+    def perform_create(self, serializer):
+        store_id = self.request.query_params.get("store_id")
+        if not store_id:
+            raise PermissionDenied("store_id is required")
+        serializer.save(store_id=store_id)
 
 
 def _product_out(product, quantity=None):
@@ -41,7 +60,7 @@ class ProductListCreateView(APIView):
         store_id = request.query_params.get("store_id")
         skip = int(request.query_params.get("skip", 0))
         limit = int(request.query_params.get("limit", 50))
-        limit = max(1, min(limit, 100))
+        limit = max(1, min(limit, 1000))
 
         products = (
             Product.objects.filter(store_id=store_id, is_active=True)
